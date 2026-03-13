@@ -1,0 +1,12 @@
+{
+  "domain": "sid_assistant",
+  "name": "SID Assistant (Smart Intent Dispatcher)",
+  "codeowners": ["@kcalvelli"],
+  "config_flow": true,
+  "dependencies": ["conversation", "homeassistant"],
+  "documentation": "https://github.com/kcalvelli/sid-assistant",
+  "integration_type": "service",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/kcalvelli/sid-assistant/issues",
+  "version": "1.0.0"
+}

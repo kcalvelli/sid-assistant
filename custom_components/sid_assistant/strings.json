@@ -1,0 +1,30 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SID Assistant",
+        "description": "Configure connection to your OpenAI-compatible chat completions endpoint.",
+        "data": {
+          "endpoint_url": "Endpoint URL",
+          "bearer_token": "Bearer Token",
+          "model": "Model",
+          "timeout": "Request Timeout (seconds)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the endpoint.",
+      "unknown": "Unexpected error."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SID Assistant Options",
+        "data": {
+          "acknowledge_prompt": "Acknowledge Prompt (system message sent when a local action was already completed)"
+        }
+      }
+    }
+  }
+}
