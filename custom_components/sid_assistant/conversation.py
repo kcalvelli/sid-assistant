@@ -19,9 +19,11 @@ from .const import (
     CONF_ACKNOWLEDGE_PROMPT,
     CONF_BEARER_TOKEN,
     CONF_ENDPOINT_URL,
+    CONF_FULL_REQUEST_PROMPT,
     CONF_MODEL,
     CONF_TIMEOUT,
     DEFAULT_ACKNOWLEDGE_PROMPT,
+    DEFAULT_FULL_REQUEST_PROMPT,
     DEFAULT_MODEL,
     DEFAULT_TIMEOUT,
 )
@@ -123,7 +125,10 @@ class SidConversationEntity(
         self, user_input: conversation.ConversationInput
     ) -> ConversationResult:
         """Forward the raw user text to the LLM for full processing."""
-        return await self._call_llm(user_input, system_msg=None, user_msg=user_input.text)
+        system_msg = self._entry.options.get(
+            CONF_FULL_REQUEST_PROMPT, DEFAULT_FULL_REQUEST_PROMPT
+        )
+        return await self._call_llm(user_input, system_msg=system_msg, user_msg=user_input.text)
 
     async def _call_llm(
         self,

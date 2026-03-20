@@ -13,9 +13,11 @@ from .const import (
     CONF_ACKNOWLEDGE_PROMPT,
     CONF_BEARER_TOKEN,
     CONF_ENDPOINT_URL,
+    CONF_FULL_REQUEST_PROMPT,
     CONF_MODEL,
     CONF_TIMEOUT,
     DEFAULT_ACKNOWLEDGE_PROMPT,
+    DEFAULT_FULL_REQUEST_PROMPT,
     DEFAULT_MODEL,
     DEFAULT_TIMEOUT,
     DOMAIN,
@@ -102,6 +104,12 @@ class SidAssistantOptionsFlow(OptionsFlow):
                         CONF_ACKNOWLEDGE_PROMPT,
                         default=current.get(
                             CONF_ACKNOWLEDGE_PROMPT, DEFAULT_ACKNOWLEDGE_PROMPT
+                        ),
+                    ): str,
+                    vol.Optional(
+                        CONF_FULL_REQUEST_PROMPT,
+                        default=current.get(
+                            CONF_FULL_REQUEST_PROMPT, DEFAULT_FULL_REQUEST_PROMPT
                         ),
                     ): str,
                 }
