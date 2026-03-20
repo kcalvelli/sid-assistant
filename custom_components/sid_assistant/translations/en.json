@@ -23,7 +23,8 @@
         "title": "SID Assistant Options",
         "data": {
           "timeout": "Request Timeout (seconds)",
-          "acknowledge_prompt": "Acknowledge Prompt (system message sent when a local action was already completed)"
+          "acknowledge_prompt": "Acknowledge Prompt (system message sent when a local action was already completed)",
+          "full_request_prompt": "Full Request Prompt (system message sent when local intent handling failed and the request is forwarded to the LLM)"
         }
       }
     }
