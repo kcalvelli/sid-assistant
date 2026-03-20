@@ -10,7 +10,7 @@ Every existing HA conversation agent integration (OpenAI, Anthropic, Ollama, etc
 
 SID tries Home Assistant's built-in intent system **first**. If it matches and executes a device command (lights, switches, covers, scenes, etc.), the action happens instantly. Then SID forwards the context to your LLM so it can acknowledge what happened in character — your pirate assistant says "Aye, lights are on!" without having been the one to turn them on.
 
-If the local intent system doesn't match (questions, conversations, complex requests), SID falls through to your LLM with the full request for normal processing.
+If the local intent system doesn't match (questions, conversations, complex requests), SID falls through to your LLM with the full request for normal processing — along with your current entity states so the LLM knows what's available.
 
 ```
 Voice Command
@@ -28,8 +28,8 @@ Voice Command
     ▼           ▼
 ┌─────────┐ ┌─────────────┐
 │ LLM:    │ │ LLM:        │
-│ Ack     │ │ Full        │
-│ only    │ │ request     │
+│ Ack     │ │ Full request│
+│ only    │ │ + entities  │
 └─────────┘ └─────────────┘
 ```
 
@@ -74,13 +74,35 @@ Copy the `custom_components/sid_assistant` directory into your Home Assistant `c
 5. Set **Conversation agent** to **SID**
 6. **Disable** "Prefer handling commands locally" — SID handles the local-first logic itself
 
-### Customize the Acknowledge Prompt
+### Runtime Options
 
-After setup, go to the integration's **Options** to customize the system prompt sent to your LLM when acknowledging completed actions. This is where you inject personality:
+After setup, go to **Settings → Integrations → SID Assistant → Configure** to adjust:
+
+- **Request Timeout** — override the timeout set during initial setup without removing the integration
+- **System Prompt** — system message sent with full LLM requests (when local intents can't handle the command). Use this to tell your LLM what it can do, what entities are available, room aliases, and common patterns
+- **Acknowledge Prompt** — system message sent when a local action was already completed. This is where you inject personality:
 
 > *"You are a sarcastic British butler. When the user's smart home command has been completed, acknowledge it with dry wit."*
 
-The default is neutral — it just tells the LLM an action was completed and to acknowledge briefly.
+The default acknowledge prompt is neutral — it just tells the LLM an action was completed and to acknowledge briefly.
+
+## Entity Context
+
+When a command falls through to the LLM (full request path), SID automatically includes a snapshot of your current entity states. This gives the LLM awareness of your home without you needing to describe it in the system prompt.
+
+**Included entities:**
+- **Controllable** — lights, switches, climate, covers, fans, media players, locks
+- **Sensors** — temperature and humidity sensors
+- **Presence** — motion, occupancy, and presence binary sensors
+
+**Filtered out** to keep the payload small:
+- Noisy switch entities (auto-update, cloud connection, mute, do-not-disturb, loudness, crossfade, microphone)
+- Sensor entities without useful device classes (power consumption, signal levels, battery, etc.)
+- Entities in `unavailable` or `unknown` state
+
+Climate entities include current and target temperature. Media players that are actively playing include track and artist info.
+
+Entity states are fetched live on every request — new entities added to HA appear automatically.
 
 ## How It Works
 
@@ -92,8 +114,8 @@ The default is neutral — it just tells the LLM an action was completed and to 
    - Your LLM returns a personality-appropriate acknowledgment
    - That acknowledgment is spoken back via TTS
 4. If the local agent returns anything else (no match, query, error):
-   - SID forwards the original user text to your LLM
-   - Full LLM processing — tools, function calling, multi-turn, whatever your backend supports
+   - SID forwards the original user text to your LLM with the system prompt and current entity states
+   - Full LLM processing — the LLM can answer questions about device states, temperatures, occupancy, etc.
    - Response is spoken back via TTS
 
 ## License
