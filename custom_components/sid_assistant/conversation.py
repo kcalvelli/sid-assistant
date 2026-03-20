@@ -136,32 +136,51 @@ class SidConversationEntity(
 
     def _build_entity_context(self) -> str:
         """Build a compact summary of current entity states."""
-        relevant_domains = {
-            "light", "switch", "climate", "cover", "fan",
+        controllable_domains = {
+            "light", "climate", "cover", "fan",
             "media_player", "lock",
         }
+        # Sensor device classes worth exposing
+        useful_sensor_classes = {"temperature", "humidity"}
+        useful_binary_sensor_classes = {"motion", "occupancy", "presence"}
+        # Switch name patterns to exclude (noisy, not voice-useful)
+        noisy_switch_patterns = (
+            "auto-update", "auto_update", "cloud connection",
+            "mute", "do not disturb", "do_not_disturb",
+            "loudness", "crossfade", "microphone",
+        )
+
         lines: list[str] = []
         for state in self.hass.states.async_all():
             domain = state.domain
-            if domain not in relevant_domains:
-                continue
             if state.state in ("unavailable", "unknown"):
                 continue
-            name = state.attributes.get("friendly_name", state.entity_id)
-            entry = f"- {name} ({state.entity_id}): {state.state}"
-            # Include useful attributes for specific domains
             attrs = state.attributes
-            if domain == "climate":
-                if temp := attrs.get("current_temperature"):
-                    entry += f", current={temp}"
-                if target := attrs.get("temperature"):
-                    entry += f", target={target}"
-            elif domain == "media_player" and state.state == "playing":
-                if title := attrs.get("media_title"):
-                    entry += f", playing=\"{title}\""
-                if artist := attrs.get("media_artist"):
-                    entry += f" by {artist}"
-            lines.append(entry)
+            name = attrs.get("friendly_name", state.entity_id)
+
+            if domain in controllable_domains:
+                entry = f"- {name} ({state.entity_id}): {state.state}"
+                if domain == "climate":
+                    if temp := attrs.get("current_temperature"):
+                        entry += f", current={temp}"
+                    if target := attrs.get("temperature"):
+                        entry += f", target={target}"
+                elif domain == "media_player" and state.state == "playing":
+                    if title := attrs.get("media_title"):
+                        entry += f", playing=\"{title}\""
+                    if artist := attrs.get("media_artist"):
+                        entry += f" by {artist}"
+                lines.append(entry)
+            elif domain == "switch":
+                if not any(p in name.lower() for p in noisy_switch_patterns):
+                    lines.append(f"- {name} ({state.entity_id}): {state.state}")
+            elif domain == "sensor":
+                if attrs.get("device_class") in useful_sensor_classes:
+                    lines.append(f"- {name} ({state.entity_id}): {state.state}")
+            elif domain == "binary_sensor":
+                if attrs.get("device_class") in useful_binary_sensor_classes:
+                    lines.append(f"- {name} ({state.entity_id}): {state.state}")
+
         if not lines:
             return ""
         return "Available entities:\n" + "\n".join(sorted(lines))
