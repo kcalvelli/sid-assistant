@@ -138,7 +138,7 @@ class SidConversationEntity(
         """Build a compact summary of current entity states."""
         relevant_domains = {
             "light", "switch", "climate", "cover", "fan",
-            "media_player", "lock", "sensor", "binary_sensor",
+            "media_player", "lock",
         }
         lines: list[str] = []
         for state in self.hass.states.async_all():
@@ -148,10 +148,23 @@ class SidConversationEntity(
             if state.state in ("unavailable", "unknown"):
                 continue
             name = state.attributes.get("friendly_name", state.entity_id)
-            lines.append(f"- {name}: {state.state}")
+            entry = f"- {name} ({state.entity_id}): {state.state}"
+            # Include useful attributes for specific domains
+            attrs = state.attributes
+            if domain == "climate":
+                if temp := attrs.get("current_temperature"):
+                    entry += f", current={temp}"
+                if target := attrs.get("temperature"):
+                    entry += f", target={target}"
+            elif domain == "media_player" and state.state == "playing":
+                if title := attrs.get("media_title"):
+                    entry += f", playing=\"{title}\""
+                if artist := attrs.get("media_artist"):
+                    entry += f" by {artist}"
+            lines.append(entry)
         if not lines:
             return ""
-        return "Current entity states:\n" + "\n".join(sorted(lines))
+        return "Available entities:\n" + "\n".join(sorted(lines))
 
     async def _call_llm(
         self,
