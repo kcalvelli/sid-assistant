@@ -22,6 +22,7 @@
       "init": {
         "title": "SID Assistant Options",
         "data": {
+          "timeout": "Request Timeout (seconds)",
           "acknowledge_prompt": "Acknowledge Prompt (system message sent when a local action was already completed)"
         }
       }

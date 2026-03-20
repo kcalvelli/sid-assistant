@@ -135,7 +135,10 @@ class SidConversationEntity(
         url = self._entry.data[CONF_ENDPOINT_URL]
         token = self._entry.data[CONF_BEARER_TOKEN]
         model = self._entry.data.get(CONF_MODEL, DEFAULT_MODEL)
-        timeout = self._entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
+        timeout = self._entry.options.get(
+            CONF_TIMEOUT,
+            self._entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT),
+        )
 
         messages: list[dict] = []
         if system_msg:

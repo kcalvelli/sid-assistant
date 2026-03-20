@@ -86,10 +86,18 @@ class SidAssistantOptionsFlow(OptionsFlow):
             return self.async_create_entry(title="", data=user_input)
 
         current = self._config_entry.options
+        current_timeout = current.get(
+            CONF_TIMEOUT,
+            self._config_entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT),
+        )
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
+                    vol.Optional(
+                        CONF_TIMEOUT,
+                        default=current_timeout,
+                    ): int,
                     vol.Optional(
                         CONF_ACKNOWLEDGE_PROMPT,
                         default=current.get(
