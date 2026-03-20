@@ -128,7 +128,30 @@ class SidConversationEntity(
         system_msg = self._entry.options.get(
             CONF_FULL_REQUEST_PROMPT, DEFAULT_FULL_REQUEST_PROMPT
         )
-        return await self._call_llm(user_input, system_msg=system_msg, user_msg=user_input.text)
+        entity_context = self._build_entity_context()
+        user_msg = user_input.text
+        if entity_context:
+            user_msg = f"{user_msg}\n\n{entity_context}"
+        return await self._call_llm(user_input, system_msg=system_msg, user_msg=user_msg)
+
+    def _build_entity_context(self) -> str:
+        """Build a compact summary of current entity states."""
+        relevant_domains = {
+            "light", "switch", "climate", "cover", "fan",
+            "media_player", "lock", "sensor", "binary_sensor",
+        }
+        lines: list[str] = []
+        for state in self.hass.states.async_all():
+            domain = state.domain
+            if domain not in relevant_domains:
+                continue
+            if state.state in ("unavailable", "unknown"):
+                continue
+            name = state.attributes.get("friendly_name", state.entity_id)
+            lines.append(f"- {name}: {state.state}")
+        if not lines:
+            return ""
+        return "Current entity states:\n" + "\n".join(sorted(lines))
 
     async def _call_llm(
         self,
