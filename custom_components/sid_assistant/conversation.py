@@ -75,6 +75,7 @@ class SidConversationEntity(
             context=user_input.context,
             language=user_input.language,
             agent_id=HOME_ASSISTANT_AGENT,
+            device_id=user_input.device_id,
         )
 
         response_data = local_result.response.as_dict()
@@ -91,9 +92,13 @@ class SidConversationEntity(
         if (
             local_result.response.response_type
             == intent.IntentResponseType.ACTION_DONE
-            and has_targets
         ):
-            return await self._llm_acknowledge(user_input, local_result)
+            if has_targets:
+                return await self._llm_acknowledge(user_input, local_result)
+            _LOGGER.debug(
+                "Local intent returned ACTION_DONE without targets (timer/confirmation), passing through directly"
+            )
+            return local_result
 
         return await self._llm_full_request(user_input)
 
